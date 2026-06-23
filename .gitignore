@@ -1,0 +1,32 @@
+# ===== Python / Django =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Base de données SQLite (données locales — ne pas versionner)
+db.sqlite3
+db.sqlite3-journal
+
+# Fichiers média uploadés (photos d'articles)
+/media/
+
+# Fichiers statiques collectés (collectstatic)
+/staticfiles/
+
+# ===== Environnements virtuels =====
+venv/
+.venv/
+env/
+ENV/
+
+# ===== Secrets / configuration locale =====
+.env
+*.local
+
+# ===== Éditeurs / OS =====
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

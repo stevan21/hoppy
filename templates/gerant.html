@@ -1,0 +1,98 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>BarStock — Prise de commande</title>
+  <link rel="stylesheet" href="{% static 'gerant.css' %}">
+  <!-- PWA -->
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+  <meta name="theme-color" content="#1a2e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BarStock">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+</head>
+<body class="gerant-body">
+
+<!-- Sprite icônes -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"></path><path d="M12 11v11"></path><path d="m19 3-7 8-7-8Z"></path></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"></path></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"></path><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></symbol>
+  </defs>
+</svg>
+
+<div class="g-main" id="gMain" data-view="articles">
+  <!-- Grille d'articles -->
+  <section class="g-grid-wrap">
+    <div class="g-grid-head">
+      <div class="g-search">
+        <svg class="ico"><use href="#i-search"></use></svg>
+        <input type="text" id="searchInput" placeholder="Rechercher une boisson…" autocomplete="off">
+        <button class="g-search-clear" id="searchClear" type="button" aria-label="Effacer"><svg class="ico"><use href="#i-x"></use></svg></button>
+      </div>
+    </div>
+    <div class="g-grid" id="posGrid"></div>
+  </section>
+
+  <!-- Panier / commande en cours -->
+  <aside class="g-cart">
+    <div class="g-cart-head">
+      <svg class="ico"><use href="#i-cart"></use></svg> Commande en cours
+    </div>
+    <input type="text" id="orderLabel" class="g-label" placeholder="Table / client (optionnel)" maxlength="60">
+    <div class="g-cart-list" id="cartList"></div>
+    <div class="g-cart-total">
+      <span>Total</span>
+      <b id="cartTotal">0 XAF</b>
+    </div>
+    <div class="g-cart-btns">
+      <button class="btn btn-ghost" id="orderClear"><svg class="ico"><use href="#i-x"></use></svg> Vider</button>
+      <button class="btn btn-primary g-validate" id="orderValidate"><svg class="ico"><use href="#i-check"></use></svg> Valider</button>
+    </div>
+
+    <div class="g-recent-title">Dernières commandes</div>
+    <div class="g-recent" id="ordersList"></div>
+  </aside>
+</div>
+
+<!-- Barre de navigation du bas (mobile) -->
+<nav class="g-bottomnav" id="bottomNav">
+  <button class="g-nav-btn active" data-view="articles" type="button">
+    <svg class="ico"><use href="#i-grid"></use></svg><span>Articles</span>
+  </button>
+  <button class="g-nav-btn" data-view="order" type="button">
+    <svg class="ico"><use href="#i-cart"></use></svg><span>Commande</span>
+    <span class="g-nav-badge" id="navCartBadge" hidden>0</span>
+  </button>
+  <button class="g-nav-btn" data-view="history" type="button">
+    <svg class="ico"><use href="#i-history"></use></svg><span>Historique</span>
+  </button>
+</nav>
+
+<!-- Invitation animée (toutes les 2 min d'inactivité) -->
+<div class="g-hint" id="tapHint" aria-hidden="true">
+  <div class="g-hint-card">
+    <span class="g-hand"><svg class="ico"><use href="#i-hand"></use></svg></span>
+    <span class="g-hint-msg">Touchez votre boisson pour commander</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"><svg class="ico"><use href="#i-check"></use></svg><span id="toastMsg">OK</span></div>
+
+<script src="{% static 'offline.js' %}"></script>
+<script src="{% static 'gerant.js' %}"></script>
+</body>
+</html>

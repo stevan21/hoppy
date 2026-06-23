@@ -1,0 +1,911 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BarStock Pro - Panneau d'administration</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <!-- PWA / hors ligne -->
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+  <meta name="theme-color" content="#1a2e3f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+</head>
+<body>
+<!-- ===== SPRITE D'ICÔNES SVG (Lucide) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"></path><path d="M12 11v11"></path><path d="m19 3-7 8-7-8Z"></path></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="M12 5v14"></path></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"></path></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><line x1="12" x2="12" y1="20" y2="10"></line><line x1="18" x2="18" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="16"></line></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="m9 14 2 2 4-4"></path></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="18" y2="18"></line></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></symbol>
+    <symbol id="i-in" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l4 4 4-4"></path><path d="M12 8v8"></path></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16 12l-4-4-4 4"></path><path d="M12 16V8"></path></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M16 2v4"></path></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="m16.71 13.88.7.71-2.82 2.82"></path></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></symbol>
+    <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></symbol>
+    <symbol id="i-orders" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></symbol>
+  </defs>
+</svg>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-ico"><svg class="ico"><use href="#i-martini"></use></svg></span>
+    <span class="brand-txt"><b>BarStock</b><span>PRO ADMIN</span></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Navigation</div>
+    <button class="nav-tab active" data-page="dashboard">
+      <svg class="ico"><use href="#i-grid"></use></svg> Tableau de bord
+    </button>
+    <button class="nav-tab" data-page="orders">
+      <svg class="ico"><use href="#i-orders"></use></svg> Commandes <span class="tab-badge" id="ordersBadge">0</span>
+    </button>
+    <button class="nav-tab" data-page="stock">
+      <svg class="ico"><use href="#i-box"></use></svg> Stock <span class="tab-badge" id="stockBadge">6</span>
+    </button>
+    <button class="nav-tab" data-page="stats">
+      <svg class="ico"><use href="#i-trending"></use></svg> Statistiques
+    </button>
+    <button class="nav-tab" data-page="history">
+      <svg class="ico"><use href="#i-history"></use></svg> Historique <span class="tab-badge" id="histBadge">5</span>
+    </button>
+    <button class="nav-tab" data-page="todo">
+      <svg class="ico"><use href="#i-tasks"></use></svg> Tâches <span class="tab-badge" id="todoBadge">2</span>
+    </button>
+    <button class="nav-tab" data-page="archives">
+      <svg class="ico"><use href="#i-archive"></use></svg> Archives <span class="tab-badge" id="archiveBadge">0</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="status-badge"><svg class="ico"><use href="#i-save"></use></svg> <span id="storageStatus">sauvegardé</span></span>
+    <span class="meta"><svg class="ico"><use href="#i-layers"></use></svg> Panneau SPA v3.0</span>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg class="ico"><use href="#i-menu"></use></svg></button>
+    <h2 id="pageTitle"><svg class="ico"><use href="#i-grid"></use></svg> Tableau de bord <small>Prix &amp; ventes (XAF)</small></h2>
+    <div class="topbar-actions">
+      <div class="badge-stock" id="totalBadge">30 articles</div>
+      <button class="btn-reset" id="resetBtn" title="Réinitialiser le stock"><svg class="ico"><use href="#i-refresh"></use></svg></button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ===== PAGE TABLEAU DE BORD ===== -->
+    <div class="page active" id="page-dashboard">
+
+      <div class="kpi-grid">
+        <div class="kpi k-value">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-coins"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="caToday">290 000 XAF</div><div class="kpi-lbl">Ventes du jour</div></div>
+        </div>
+        <div class="kpi k-in">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-cart"></use></svg></span>
+          <div><div class="kpi-val" id="soldToday">20</div><div class="kpi-lbl">Unités vendues (jour)</div></div>
+        </div>
+        <div class="kpi k-total">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-tag"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="caTotal">290 000 XAF</div><div class="kpi-lbl">Ventes totales</div></div>
+        </div>
+        <div class="kpi k-gold">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-box"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="dashStockValue">390 000 XAF</div><div class="kpi-lbl">Valeur du stock</div></div>
+        </div>
+      </div>
+
+      <!-- VENTES RÉCENTES -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-cart"></use></svg> Ventes récentes <span style="color:var(--muted);font-weight:600;font-size:0.8rem;">(sorties de stock)</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="item-list" id="salesList">
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-cart"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Whisky</div>
+                <div class="meta">3 × 22 000 XAF · Service / Vente</div>
+              </div>
+              <span class="hist-delta out">66 000 XAF</span>
+              <span class="hist-time">04:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-cart"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Vodka</div>
+                <div class="meta">4 × 12 000 XAF · Service / Vente</div>
+              </div>
+              <span class="hist-delta out">48 000 XAF</span>
+              <span class="hist-time">03:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-cart"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Cointreau</div>
+                <div class="meta">2 × 13 000 XAF · Service / Vente</div>
+              </div>
+              <span class="hist-delta out">26 000 XAF</span>
+              <span class="hist-time">02:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-cart"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Tequila</div>
+                <div class="meta">3 × 18 000 XAF · Service / Vente</div>
+              </div>
+              <span class="hist-delta out">54 000 XAF</span>
+              <span class="hist-time">01:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-cart"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Vodka</div>
+                <div class="meta">8 × 12 000 XAF · Service / Vente</div>
+              </div>
+              <span class="hist-delta out">96 000 XAF</span>
+              <span class="hist-time">00:46</span>
+            </div></div>
+        </div>
+      </div>
+
+      <!-- PRIX & RÉCAP ARTICLES -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-tag"></use></svg> Articles, prix &amp; ventes</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Article</th>
+                  <th class="num">Prix unit.</th>
+                  <th class="num">En stock</th>
+                  <th class="num">Valeur stock</th>
+                  <th class="num">Vendus</th>
+                  <th class="num">Chiffre vente</th>
+                </tr>
+              </thead>
+              <tbody id="priceTableBody">
+            <tr>
+              <td class="name">Vodka</td>
+              <td class="num">12 000 XAF</td>
+              <td class="num">12</td>
+              <td class="num">144 000 XAF</td>
+              <td class="num">12</td>
+              <td class="num rev">144 000 XAF</td>
+            </tr>
+            <tr>
+              <td class="name">Gin</td>
+              <td class="num">15 000 XAF</td>
+              <td class="num">6</td>
+              <td class="num">90 000 XAF</td>
+              <td class="num">0</td>
+              <td class="num rev">0 XAF</td>
+            </tr>
+            <tr>
+              <td class="name">Rhum</td>
+              <td class="num">9 000 XAF</td>
+              <td class="num">8</td>
+              <td class="num">72 000 XAF</td>
+              <td class="num">0</td>
+              <td class="num rev">0 XAF</td>
+            </tr>
+            <tr>
+              <td class="name">Whisky</td>
+              <td class="num">22 000 XAF</td>
+              <td class="num">3</td>
+              <td class="num">66 000 XAF</td>
+              <td class="num">3</td>
+              <td class="num rev">66 000 XAF</td>
+            </tr>
+            <tr>
+              <td class="name">Tequila</td>
+              <td class="num">18 000 XAF</td>
+              <td class="num">1</td>
+              <td class="num">18 000 XAF</td>
+              <td class="num">3</td>
+              <td class="num rev">54 000 XAF</td>
+            </tr>
+            <tr>
+              <td class="name">Cointreau</td>
+              <td class="num">13 000 XAF</td>
+              <td class="num">0</td>
+              <td class="num">0 XAF</td>
+              <td class="num">2</td>
+              <td class="num rev">26 000 XAF</td>
+            </tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE COMMANDES ===== -->
+    <div class="page" id="page-orders">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-plus"></use></svg> Nouvelle commande</span>
+        </div>
+        <div class="panel-body">
+          <div class="order-form">
+            <div class="of-field of-label">
+              <span class="field-cap"><svg class="ico"><use href="#i-orders"></use></svg> Table / client</span>
+              <input type="text" id="orderLabel" placeholder="Ex : Table 3 (optionnel)" maxlength="60">
+            </div>
+            <div class="of-field of-item">
+              <span class="field-cap"><svg class="ico"><use href="#i-box"></use></svg> Article</span>
+              <select id="orderItem"></select>
+            </div>
+            <div class="of-field of-qty">
+              <span class="field-cap"><svg class="ico"><use href="#i-martini"></use></svg> Qté</span>
+              <input type="number" id="orderQty" min="1" value="1">
+            </div>
+            <button class="btn btn-ghost" id="orderAddLine"><svg class="ico"><use href="#i-plus"></use></svg> Ajouter</button>
+          </div>
+
+          <div class="cart" id="cartList"></div>
+
+          <div class="cart-foot">
+            <span class="cart-total">Total commande : <b id="cartTotal">0 XAF</b></span>
+            <button class="btn btn-primary" id="orderValidate"><svg class="ico"><use href="#i-check"></use></svg> Valider la commande</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-orders"></use></svg> Commandes récentes</span>
+        </div>
+        <div class="panel-body">
+          <div id="ordersList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE STOCK ===== -->
+    <div class="page" id="page-stock">
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi k-total">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-box"></use></svg></span>
+          <div><div class="kpi-val" id="kpiArticles">6</div><div class="kpi-lbl">Articles</div></div>
+        </div>
+        <div class="kpi k-gold">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-chart"></use></svg></span>
+          <div><div class="kpi-val" id="totalItems">30</div><div class="kpi-lbl">Unités totales</div></div>
+        </div>
+        <div class="kpi k-in">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-in"></use></svg></span>
+          <div><div class="kpi-val" id="kpiInToday">0</div><div class="kpi-lbl">Entrées du jour</div></div>
+        </div>
+        <div class="kpi k-out">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-out"></use></svg></span>
+          <div><div class="kpi-val" id="kpiOutToday">20</div><div class="kpi-lbl">Sorties du jour</div></div>
+        </div>
+        <div class="kpi k-warn">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-alert"></use></svg></span>
+          <div><div class="kpi-val" id="kpiLow">2</div><div class="kpi-lbl">Stock bas</div></div>
+        </div>
+        <div class="kpi k-out">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-x"></use></svg></span>
+          <div><div class="kpi-val" id="kpiOut">1</div><div class="kpi-lbl">En rupture</div></div>
+        </div>
+      </div>
+
+      <!-- APPROVISIONNEMENT -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-plus"></use></svg> Approvisionnement</span>
+          <div class="seg-tabs" id="addTabs">
+            <button type="button" class="seg-tab active" data-tab="reappro">Réapprovisionner</button>
+            <button type="button" class="seg-tab" data-tab="new">Nouvelle boisson</button>
+          </div>
+        </div>
+        <div class="panel-body">
+
+          <!-- Onglet : réapprovisionner une boisson existante -->
+          <form class="add-form add-pane" id="reapproForm" data-pane="reappro">
+            <div class="input-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-tag"></use></svg> Boisson</span>
+              <select id="reapproItem"></select>
+            </div>
+            <div class="case-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-box"></use></svg> Casiers</span>
+              <input type="number" id="reapproCases" placeholder="0" min="0" value="0">
+            </div>
+            <div class="qty-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-martini"></use></svg> Unités</span>
+              <input type="number" id="reapproQty" placeholder="0" min="0" value="0">
+            </div>
+            <button type="submit" class="btn btn-primary"><svg class="ico"><use href="#i-plus"></use></svg> Ajouter au stock</button>
+          </form>
+
+          <!-- Onglet : créer une nouvelle boisson -->
+          <form class="add-form add-pane" id="newForm" data-pane="new" hidden>
+            <div class="input-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-tag"></use></svg> Nom de la boisson</span>
+              <input type="text" id="newName" placeholder="Ex : Heineken 33cl" autocomplete="off">
+            </div>
+            <div class="price-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-coins"></use></svg> Prix XAF</span>
+              <input type="number" id="newPrice" placeholder="Prix" min="0" step="any" inputmode="decimal">
+            </div>
+            <div class="photo-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-image"></use></svg> Photo</span>
+              <input type="file" id="newImage" accept="image/*">
+            </div>
+            <div class="case-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-box"></use></svg> Casiers</span>
+              <input type="number" id="newCases" placeholder="0" min="0" value="0">
+            </div>
+            <div class="qty-group">
+              <span class="field-cap"><svg class="ico"><use href="#i-martini"></use></svg> Unités</span>
+              <input type="number" id="newQty" placeholder="0" min="0" value="0">
+            </div>
+            <button type="submit" class="btn btn-primary"><svg class="ico"><use href="#i-plus"></use></svg> Créer la boisson</button>
+          </form>
+
+          <div class="form-hint" id="formHint"><svg class="ico"><use href="#i-box"></use></svg> 1 casier = 12 unités · total : <b id="addTotalHint">0 unité</b></div>
+        </div>
+      </div>
+
+      <!-- INVENTAIRE -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-box"></use></svg> Inventaire <span id="countDisplay" style="color:var(--muted);font-weight:600;font-size:0.8rem;">6 articles</span></span>
+          <div class="toolbar">
+            <input type="text" id="stockSearch" placeholder="Rechercher une boisson…" autocomplete="off">
+            <div class="filter-group">
+              <label><svg class="ico"><use href="#i-search"></use></svg></label>
+              <select id="filterSelect">
+                <option value="all">Tous</option>
+                <option value="low">Stock bas</option>
+                <option value="out">Rupture</option>
+                <option value="high">Stock élevé</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="item-list" id="itemList">
+          <div class="item-card " data-id="1">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Vodka</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> maj 03:46</span>
+              </div>
+              <span class="item-qty ">12</span>
+              <button class="item-price edit-price-btn" data-id="1" title="Modifier le prix unitaire">12 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">144 000 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="1" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="1" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="1" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="1" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div>
+          <div class="item-card " data-id="2">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Rhum</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> Aucun mouvement</span>
+              </div>
+              <span class="item-qty ">8</span>
+              <button class="item-price edit-price-btn" data-id="2" title="Modifier le prix unitaire">9 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">72 000 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="2" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="2" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="2" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="2" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div>
+          <div class="item-card low-stock" data-id="3">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Whisky</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> maj 04:46</span>
+              </div>
+              <span class="item-qty low">3</span>
+              <button class="item-price edit-price-btn" data-id="3" title="Modifier le prix unitaire">22 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">66 000 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="3" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="3" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="3" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="3" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div>
+          <div class="item-card low-stock" data-id="4">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Tequila</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> maj 01:46</span>
+              </div>
+              <span class="item-qty low">1</span>
+              <button class="item-price edit-price-btn" data-id="4" title="Modifier le prix unitaire">18 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">18 000 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="4" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="4" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="4" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="4" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div>
+          <div class="item-card " data-id="5">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Gin</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> Aucun mouvement</span>
+              </div>
+              <span class="item-qty ">6</span>
+              <button class="item-price edit-price-btn" data-id="5" title="Modifier le prix unitaire">15 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">90 000 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="5" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="5" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="5" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="5" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div>
+          <div class="item-card out-of-stock" data-id="6">
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">Cointreau</span>
+                <span class="item-meta"><svg class="ico"><use href="#i-clock"></use></svg> maj 02:46</span>
+              </div>
+              <span class="item-qty out">0</span>
+              <button class="item-price edit-price-btn" data-id="6" title="Modifier le prix unitaire">13 000 XAF</button>
+              <span class="item-value" title="Valeur en stock">0 XAF</span>
+            </div>
+            <div class="item-actions">
+              <button class="move-btn" data-id="6" aria-label="Mouvement" title="Entrée / Sortie"><svg class="ico"><use href="#i-swap"></use></svg></button>
+              <button class="decrement-btn" data-id="6" aria-label="Sortie -1"><svg class="ico"><use href="#i-minus"></use></svg></button>
+              <button class="increment-btn" data-id="6" aria-label="Entrée +1"><svg class="ico"><use href="#i-plus"></use></svg></button>
+              <button class="delete-btn" data-id="6" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE STATISTIQUES ===== -->
+    <div class="page" id="page-stats">
+
+      <!-- Sélecteur de période -->
+      <div class="stat-periods" id="statPeriods">
+        <button class="active" data-period="today">Aujourd'hui</button>
+        <button data-period="7d">7 jours</button>
+        <button data-period="30d">30 jours</button>
+        <button data-period="all">Tout</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi k-in">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-cart"></use></svg></span>
+          <div><div class="kpi-val" id="statUnits">20</div><div class="kpi-lbl">Unités vendues</div></div>
+        </div>
+        <div class="kpi k-value">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-coins"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="statRevenue">290 000 XAF</div><div class="kpi-lbl">Chiffre d'affaires</div></div>
+        </div>
+        <div class="kpi k-total">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-history"></use></svg></span>
+          <div><div class="kpi-val" id="statCount">5</div><div class="kpi-lbl">Nombre de ventes</div></div>
+        </div>
+        <div class="kpi k-gold">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-tag"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="statAvg">58 000 XAF</div><div class="kpi-lbl">Ticket moyen</div></div>
+        </div>
+      </div>
+
+      <!-- Ventes par jour -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-trending"></use></svg> Ventes par jour <span id="statChartSub" style="color:var(--muted);font-weight:600;font-size:0.8rem;">(aujourd'hui)</span></span>
+        </div>
+        <div class="panel-body">
+          <div class="bar-chart" id="salesChart">
+            <div class="bar-col" title="samedi 20 juin 2026 : 290 000 XAF">
+              <div class="bar-amount">290k</div>
+              <div class="bar-track"><div class="bar-fill " style="height:100%"></div></div>
+              <div class="bar-label">sam<br>20/06</div>
+            </div></div>
+        </div>
+      </div>
+
+      <!-- Top boissons -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-trophy"></use></svg> Boissons les plus vendues</span>
+        </div>
+        <div class="panel-body">
+          <div id="topDrinks">
+            <div class="rank-row">
+              <span class="rank-pos top1">1</span>
+              <div class="rank-main">
+                <div class="rank-top">
+                  <span class="rank-name">Vodka</span>
+                  <span class="rank-val"><b>12</b> vendus · 144 000 XAF</span>
+                </div>
+                <div class="rank-track"><div class="rank-fill" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="rank-row">
+              <span class="rank-pos top2">2</span>
+              <div class="rank-main">
+                <div class="rank-top">
+                  <span class="rank-name">Whisky</span>
+                  <span class="rank-val"><b>3</b> vendus · 66 000 XAF</span>
+                </div>
+                <div class="rank-track"><div class="rank-fill" style="width:25%"></div></div>
+              </div>
+            </div>
+            <div class="rank-row">
+              <span class="rank-pos top3">3</span>
+              <div class="rank-main">
+                <div class="rank-top">
+                  <span class="rank-name">Tequila</span>
+                  <span class="rank-val"><b>3</b> vendus · 54 000 XAF</span>
+                </div>
+                <div class="rank-track"><div class="rank-fill" style="width:25%"></div></div>
+              </div>
+            </div>
+            <div class="rank-row">
+              <span class="rank-pos">4</span>
+              <div class="rank-main">
+                <div class="rank-top">
+                  <span class="rank-name">Cointreau</span>
+                  <span class="rank-val"><b>2</b> vendus · 26 000 XAF</span>
+                </div>
+                <div class="rank-track"><div class="rank-fill" style="width:17%"></div></div>
+              </div>
+            </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE HISTORIQUE ===== -->
+    <div class="page" id="page-history">
+
+      <div class="kpi-grid">
+        <div class="kpi k-in">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-in"></use></svg></span>
+          <div><div class="kpi-val" id="histInToday">0</div><div class="kpi-lbl">Entrées aujourd'hui</div></div>
+        </div>
+        <div class="kpi k-out">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-out"></use></svg></span>
+          <div><div class="kpi-val" id="histOutToday">20</div><div class="kpi-lbl">Sorties aujourd'hui</div></div>
+        </div>
+        <div class="kpi k-total">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-chart"></use></svg></span>
+          <div><div class="kpi-val kpi-money" id="histNetToday">290 000 XAF</div><div class="kpi-lbl">Valeur sorties (jour)</div></div>
+        </div>
+        <div class="kpi k-gold">
+          <span class="kpi-ico"><svg class="ico"><use href="#i-history"></use></svg></span>
+          <div><div class="kpi-val" id="histTotalMoves">7</div><div class="kpi-lbl">Mouvements</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-history"></use></svg> Journal des mouvements</span>
+          <div class="toolbar">
+            <input type="text" id="histSearch" placeholder="Rechercher un article...">
+            <select id="histType">
+              <option value="all">Tous types</option>
+              <option value="in">Entrées</option>
+              <option value="out">Sorties</option>
+              <option value="other">Autres</option>
+            </select>
+            <select id="histDate"><option value="all">Toutes les dates</option><option value="2026-06-20">Aujourd'hui</option><option value="2026-06-19">Vendredi 19 juin 2026</option></select>
+            <button class="btn btn-primary" id="exportPdfBtn"><svg class="ico"><use href="#i-download"></use></svg> PDF</button>
+            <button class="btn btn-danger-ghost" id="clearHistoryBtn"><svg class="ico"><use href="#i-trash"></use></svg> Vider</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="hist-scroll" id="historyList"><div class="hist-day">
+          <div class="hist-day-head">
+            <span class="date"><svg class="ico"><use href="#i-calendar"></use></svg> Aujourd'hui</span>
+            <span class="sum">
+              <span class="s-in">+0 entrées</span>
+              <span class="s-out">-20 sorties</span>
+              <span class="s-val">290 000 XAF sorties</span>
+            </span>
+          </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-out"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Whisky</div>
+                <div class="meta">Sortie · Service / Vente · 66 000 XAF</div>
+              </div>
+              <span class="hist-delta out">-3</span>
+              <span class="hist-after">→ 3</span>
+              <span class="hist-time">04:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-out"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Vodka</div>
+                <div class="meta">Sortie · Service / Vente · 48 000 XAF</div>
+              </div>
+              <span class="hist-delta out">-4</span>
+              <span class="hist-after">→ 12</span>
+              <span class="hist-time">03:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-out"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Cointreau</div>
+                <div class="meta">Sortie · Service / Vente · 26 000 XAF</div>
+              </div>
+              <span class="hist-delta out">-2</span>
+              <span class="hist-after">→ 0</span>
+              <span class="hist-time">02:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-out"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Tequila</div>
+                <div class="meta">Sortie · Service / Vente · 54 000 XAF</div>
+              </div>
+              <span class="hist-delta out">-3</span>
+              <span class="hist-after">→ 1</span>
+              <span class="hist-time">01:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico out"><svg class="ico"><use href="#i-out"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Vodka</div>
+                <div class="meta">Sortie · Service / Vente · 96 000 XAF</div>
+              </div>
+              <span class="hist-delta out">-8</span>
+              <span class="hist-after">→ 16</span>
+              <span class="hist-time">00:46</span>
+            </div></div><div class="hist-day">
+          <div class="hist-day-head">
+            <span class="date"><svg class="ico"><use href="#i-calendar"></use></svg> vendredi 19 juin 2026</span>
+            <span class="sum">
+              <span class="s-in">+30 entrées</span>
+              <span class="s-out">-0 sorties</span>
+              <span class="s-val">0 XAF sorties</span>
+            </span>
+          </div>
+            <div class="hist-row">
+              <span class="hist-ico in"><svg class="ico"><use href="#i-in"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Whisky</div>
+                <div class="meta">Entrée · Livraison · 132 000 XAF</div>
+              </div>
+              <span class="hist-delta in">+6</span>
+              <span class="hist-after">→ 6</span>
+              <span class="hist-time">23:46</span>
+            </div>
+            <div class="hist-row">
+              <span class="hist-ico in"><svg class="ico"><use href="#i-in"></use></svg></span>
+              <div class="hist-main">
+                <div class="nm">Vodka</div>
+                <div class="meta">Entrée · Réapprovisionnement · 288 000 XAF</div>
+              </div>
+              <span class="hist-delta in">+24</span>
+              <span class="hist-after">→ 24</span>
+              <span class="hist-time">22:46</span>
+            </div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE TODO ===== -->
+    <div class="page" id="page-todo">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-tasks"></use></svg> Liste des tâches</span>
+        </div>
+        <div class="panel-body">
+          <div class="todo-add">
+            <input type="text" id="todoInput" placeholder="Nouvelle tâche..." maxlength="100">
+            <select id="todoPriority">
+              <option value="low">Basse</option>
+              <option value="medium" selected="">Moyenne</option>
+              <option value="high">Haute</option>
+            </select>
+            <button class="btn btn-gold" id="todoAddBtn"><svg class="ico"><use href="#i-plus"></use></svg> Ajouter</button>
+          </div>
+
+          <div class="todo-filters">
+            <button class="active" data-filter="all">Toutes</button>
+            <button data-filter="active">À faire</button>
+            <button data-filter="completed">Terminées</button>
+          </div>
+
+          <div class="todo-list" id="todoList">
+            <div class="todo-item " data-id="t1">
+              <input type="checkbox" class="todo-check" data-id="t1">
+              <span class="todo-text">Commander du gin</span>
+              <span class="todo-priority priority-high"><span class="dot"></span>Haute</span>
+              <button class="todo-delete" data-id="t1" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+            <div class="todo-item " data-id="t2">
+              <input type="checkbox" class="todo-check" data-id="t2">
+              <span class="todo-text">Nettoyer le bar</span>
+              <span class="todo-priority priority-medium"><span class="dot"></span>Moyenne</span>
+              <button class="todo-delete" data-id="t2" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div>
+            <div class="todo-item completed" data-id="t3">
+              <input type="checkbox" class="todo-check" data-id="t3" checked="">
+              <span class="todo-text">Préparer les sirops</span>
+              <span class="todo-priority priority-low"><span class="dot"></span>Basse</span>
+              <button class="todo-delete" data-id="t3" aria-label="Supprimer"><svg class="ico"><use href="#i-x"></use></svg></button>
+            </div></div>
+
+          <div class="todo-stats">
+            <span id="todoTotal">3 tâches</span>
+            <span id="todoCompleted">1 terminée</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE ARCHIVES ===== -->
+    <div class="page" id="page-archives">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="ttl"><svg class="ico"><use href="#i-archive"></use></svg> Inventaires archivés</span>
+          <div class="toolbar">
+            <button class="btn btn-primary" id="archiveNowBtn"><svg class="ico"><use href="#i-archive"></use></svg> Archiver aujourd'hui</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="form-hint" style="margin:0 0 14px 0;">
+            <svg class="ico"><use href="#i-history"></use></svg>
+            Chaque journée passée est archivée automatiquement. Téléchargez un inventaire au format CSV (Excel).
+          </div>
+          <div id="archiveList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== MODALE MOUVEMENT ===== -->
+<div class="modal-backdrop" id="moveModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="ttl"><svg class="ico"><use href="#i-swap"></use></svg> Mouvement — <span id="moveItemName"></span></span>
+      <button class="x-btn" id="moveClose" aria-label="Fermer"><svg class="ico"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="seg" id="moveSeg">
+        <button type="button" data-type="out" class="active"><svg class="ico"><use href="#i-out"></use></svg> Sortie</button>
+        <button type="button" data-type="in"><svg class="ico"><use href="#i-in"></use></svg> Entrée</button>
+      </div>
+      <div class="field-row">
+        <div class="field" style="flex:0 0 110px;">
+          <label>Quantité</label>
+          <input type="number" id="moveQty" class="field-input" min="1" value="1">
+        </div>
+        <div class="field">
+          <label>Motif</label>
+          <select id="moveReason" class="field-input"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Note (optionnel)</label>
+        <input type="text" id="moveNote" class="field-input" placeholder="Précision..." maxlength="80">
+      </div>
+      <div class="move-preview">
+        <span>Stock après mouvement</span>
+        <b id="movePreview">—</b>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="moveCancel">Annuler</button>
+      <button class="btn btn-primary" id="moveConfirm"><svg class="ico"><use href="#i-check"></use></svg> Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALE AFFICHAGE ARCHIVE ===== -->
+<div class="modal-backdrop" id="archiveModal">
+  <div class="modal modal-wide">
+    <div class="modal-head">
+      <span class="ttl"><svg class="ico"><use href="#i-archive"></use></svg> <span id="archiveModalTitle">Archive</span></span>
+      <button class="x-btn" id="archiveModalClose" aria-label="Fermer"><svg class="ico"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="modal-body" id="archiveModalBody"></div>
+    <div class="modal-foot">
+      <a class="btn btn-ghost" id="archiveModalDownload" href="#"><svg class="ico"><use href="#i-download"></use></svg> Ouvrir en PDF</a>
+      <button class="btn btn-primary" id="archiveModalOk">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALE MODIFIER LE PRIX ===== -->
+<div class="modal-backdrop" id="priceModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="ttl"><svg class="ico"><use href="#i-coins"></use></svg> Modifier le prix — <span id="priceItemName"></span></span>
+      <button class="x-btn" id="priceClose" aria-label="Fermer"><svg class="ico"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Prix unitaire (XAF)</label>
+        <input type="number" id="priceInput" class="field-input" min="0" step="any" inputmode="decimal">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="priceCancel">Annuler</button>
+      <button class="btn btn-primary" id="priceConfirm"><svg class="ico"><use href="#i-check"></use></svg> Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"><svg class="ico"><use href="#i-check"></use></svg><span id="toastMsg">Action effectuée</span></div>
+
+<!-- ===== DEBUG : capture + affichage des erreurs JS (script séparé, chargé AVANT le script principal) ===== -->
+
+<!-- Logger d'erreurs (debug) -->
+<script>
+  window.addEventListener("error", function (e) {
+    var msg = e.message || (e.error && e.error.message) || "Erreur inconnue";
+    var loc = (e.filename || "") + " : ligne " + e.lineno + ", col " + e.colno;
+    var box = document.getElementById("js-error-box");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "js-error-box";
+      box.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#c53030;color:#fff;font:13px/1.5 monospace;padding:14px 16px;max-height:45vh;overflow:auto;white-space:pre-wrap";
+      (document.body || document.documentElement).appendChild(box);
+    }
+    box.textContent += "Erreur JS : " + msg + " -> " + loc + String.fromCharCode(10);
+    console.error("[JS error]", msg, loc, e.error);
+  });
+</script>
+<script src="{% static 'offline.js' %}"></script>
+<script src="{% static 'app.js' %}"></script>
+</body>
+</html>
