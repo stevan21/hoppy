@@ -1,0 +1,59 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espace serveur — BUUB</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+  <link rel="icon" href="{% static 'icons/buub.jpeg' %}">
+  <link rel="apple-touch-icon" href="{% static 'icons/buub.jpeg' %}">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions">
+    <a class="btn btn-ghost btn-sm" href="{% url 'login' %}">Gérant</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="ac-head">
+      <h1><svg class="ico" style="width:22px;height:22px;vertical-align:-3px;color:var(--gold)"><use href="#i-cart"/></svg> Espace serveur</h1>
+      <p>Connectez-vous pour prendre les commandes.</p>
+    </div>
+
+    {% if error %}
+      <div class="errors">Identifiant ou mot de passe incorrect.</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'serveur_login' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label for="id_username">Identifiant</label>
+        <input type="text" name="username" id="id_username" autofocus required autocapitalize="none">
+      </div>
+      <div class="field">
+        <label for="id_password">Mot de passe</label>
+        <input type="password" name="password" id="id_password" required>
+      </div>
+      <button class="btn btn-gold btn-block" type="submit">Ouvrir la caisse</button>
+    </form>
+
+    <div class="ac-foot">
+      Compte créé par votre gérant. <a href="{% url 'login' %}">Vous êtes gérant ?</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -28,6 +28,26 @@
     // ============================================================
     const $ = id => document.getElementById(id);
 
+    // Catégories (ordre de groupage fourni par le serveur selon le type d'établissement)
+    const CATS = Array.isArray(window.BS_CATS) ? window.BS_CATS : [];
+    function catOrderIndex(cat) {
+      const i = CATS.findIndex(c => c.toLowerCase() === cat.toLowerCase());
+      return i === -1 ? CATS.length + 1 : i;
+    }
+    function groupByCategory(list) {
+      const groups = {};
+      list.forEach(it => {
+        const c = (it.category || '').trim() || 'Divers';
+        (groups[c] = groups[c] || []).push(it);
+      });
+      return Object.keys(groups).sort((a, b) => {
+        if (a === 'Divers') return 1;
+        if (b === 'Divers') return -1;
+        const ia = catOrderIndex(a), ib = catOrderIndex(b);
+        return ia !== ib ? ia - ib : a.localeCompare(b, 'fr');
+      }).map(c => ({ cat: c, items: groups[c] }));
+    }
+
     const itemListEl = $('itemList');
     const CASE_SIZE = 12; // 1 casier = 12 unités
     const addTotalHint = $('addTotalHint');
@@ -37,9 +57,11 @@
     const reapproItem = $('reapproItem');
     const reapproCases = $('reapproCases');
     const reapproQty = $('reapproQty');
-    // Onglet nouvelle boisson
+    // Onglet nouvel article
     const newForm = $('newForm');
     const newName = $('newName');
+    const newCategory = $('newCategory');
+    const newKind = $('newKind');
     const newPrice = $('newPrice');
     const newImage = $('newImage');
     const newCases = $('newCases');
@@ -154,21 +176,25 @@
     const navTabs = document.querySelectorAll('.nav-tab');
     const pages = {
       dashboard: $('page-dashboard'),
+      caisse: $('page-caisse'),
       orders: $('page-orders'),
       stock: $('page-stock'),
       stats: $('page-stats'),
       history: $('page-history'),
       todo: $('page-todo'),
       archives: $('page-archives'),
+      qrcodes: $('page-qrcodes'),
     };
     const pageMeta = {
       dashboard: { title: 'Tableau de bord', sub: 'Prix & ventes (XAF)', icon: 'grid' },
+      caisse: { title: 'Caisse', sub: 'Prise de commande (POS)', icon: 'cart' },
       orders: { title: 'Commandes', sub: 'Prise de commande & ventes', icon: 'orders' },
       stock: { title: 'Gestion du stock', sub: 'Inventaire du bar', icon: 'box' },
       stats: { title: 'Statistiques', sub: 'Périodes & meilleures ventes', icon: 'trending' },
       history: { title: 'Historique', sub: 'Mouvements de stock', icon: 'history' },
       todo: { title: 'Gestion des tâches', sub: 'À faire & suivi', icon: 'tasks' },
       archives: { title: 'Archives', sub: 'Inventaires téléchargeables', icon: 'archive' },
+      qrcodes: { title: 'QR codes', sub: 'Menu à scanner sur les tables', icon: 'grid' },
     };
 
     // ============================================================
@@ -275,13 +301,15 @@
           <div class="empty-state">
             ${ico('inbox')}
             ${msg}<br>
-            <small>${items.length === 0 ? 'Ajoutez vos premières bouteilles !' : 'Modifiez vos filtres'}</small>
+            <small>${items.length === 0 ? 'Ajoutez vos premiers articles !' : 'Modifiez vos filtres'}</small>
           </div>`;
         return;
       }
 
       let html = '';
-      filtered.forEach((item) => {
+      groupByCategory(filtered).forEach((group) => {
+        html += `<div class="cat-head">${ico('layers')} <span>${escapeHtml(group.cat)}</span><b>${group.items.length}</b></div>`;
+        group.items.forEach((item) => {
         const name = escapeHtml(item.name || 'Sans nom');
         const qty = (item.quantity != null ? item.quantity : 0);
         const isLow = qty > 0 && qty <= 3;
@@ -302,12 +330,17 @@
           ? `<span class="item-thumb" style="background-image:url('${encodeURI(item.image)}')"></span>`
           : `<span class="item-thumb ph">${escapeHtml((item.name || '?').charAt(0).toUpperCase())}</span>`;
 
+        const catLabel = (item.category || '').trim() || 'Sans catégorie';
         html += `
           <div class="item-card ${cardClass}" data-id="${item.id}">
             <div class="item-info">
               ${thumb}
               <div class="item-main">
                 <span class="item-name">${name}</span>
+                <div class="item-tags">
+                  <button class="item-cat" data-cat-id="${item.id}" title="Changer la catégorie">${ico('layers')} ${escapeHtml(catLabel)}</button>
+                  <button class="item-kind ${item.kind === 'food' ? 'food' : 'drink'}" data-kind-id="${item.id}" title="Boisson / Nourriture (menu client)">${ico(item.kind === 'food' ? 'utensils' : 'martini')} ${item.kind === 'food' ? 'Nourriture' : 'Boisson'}</button>
+                </div>
                 <span class="item-meta">${ico('clock')} ${meta}</span>
               </div>
               <span class="item-qty ${qtyClass}">${qty}</span>
@@ -321,9 +354,18 @@
               <button class="delete-btn" data-id="${item.id}" aria-label="Supprimer">${ico('x')}</button>
             </div>
           </div>`;
+        });
       });
 
       itemListEl.innerHTML = html;
+
+      itemListEl.querySelectorAll('.item-cat').forEach(btn => {
+        btn.addEventListener('click', function(e) { e.stopPropagation(); editCategory(this.getAttribute('data-cat-id')); });
+      });
+
+      itemListEl.querySelectorAll('.item-kind').forEach(btn => {
+        btn.addEventListener('click', function(e) { e.stopPropagation(); toggleKind(this.getAttribute('data-kind-id')); });
+      });
 
       itemListEl.querySelectorAll('button[data-id]').forEach(btn => {
         btn.addEventListener('click', function(e) {
@@ -343,6 +385,27 @@
     // 10. STOCK - ACTIONS
     // ============================================================
     function fail(e) { showToast(e.message || 'Erreur', 2200); }
+
+    // Changer la catégorie d'un article
+    function editCategory(id) {
+      const item = items.find(it => it.id === id);
+      if (!item) return;
+      const v = prompt('Catégorie de « ' + item.name + ' » :', item.category || '');
+      if (v === null) return;
+      apiCall('POST', '/items/' + id + '/category/', { category: v.trim() })
+        .then(function (state) { applyState(state); showToast('Catégorie mise à jour'); })
+        .catch(fail);
+    }
+
+    // Basculer le type d'un article : boisson <-> nourriture (côté menu client)
+    function toggleKind(id) {
+      const item = items.find(it => it.id === id);
+      if (!item) return;
+      const next = item.kind === 'food' ? 'drink' : 'food';
+      apiCall('POST', '/items/' + id + '/kind/', { kind: next })
+        .then(function (state) { applyState(state); showToast(next === 'food' ? 'Classé en Nourriture' : 'Classé en Boisson'); })
+        .catch(fail);
+    }
 
     // Mouvement rapide +1 / -1 via les boutons
     function quickMove(id, type) {
@@ -919,7 +982,7 @@
           <div class="empty-state" style="padding:30px 20px;">
             ${ico('trophy')}
             Aucune vente sur cette période<br>
-            <small>Le classement des boissons s'affichera ici</small>
+            <small>Le classement des articles s'affichera ici</small>
           </div>`;
       } else {
         const maxQ = Math.max(1, ranking[0].qty);
@@ -1290,6 +1353,11 @@
 
       const meta = pageMeta[page];
       if (meta) pageTitle.innerHTML = ico(meta.icon) + ' ' + meta.title + ' <small>' + meta.sub + '</small>';
+      if (page === 'qrcodes') loadQr($('qrN').value || 12);
+      if (page === 'caisse') {
+        const fr = $('caisseFrame');
+        if (fr && !fr.src && fr.dataset.src) fr.src = fr.dataset.src;  // chargement à la 1ère ouverture
+      }
       closeSidebar();
     }
 
@@ -1325,7 +1393,7 @@
     function renderReapproOptions() {
       const prev = reapproItem.value;
       if (!items.length) {
-        reapproItem.innerHTML = '<option value="">Aucune boisson — créez-en une</option>';
+        reapproItem.innerHTML = '<option value="">Aucun article — créez-en un</option>';
         return;
       }
       reapproItem.innerHTML = items.map(it =>
@@ -1342,11 +1410,22 @@
       updateAddHint();
     }
 
+    // Type (boisson / nourriture) du nouvel article — sélecteur segmenté
+    function selectedNewKind() {
+      if (!newKind) return 'drink';
+      const active = newKind.querySelector('.seg-tab.active');
+      return (active && active.dataset.kind === 'food') ? 'food' : 'drink';
+    }
+    function setNewKind(kind) {
+      if (!newKind) return;
+      newKind.querySelectorAll('.seg-tab').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+    }
+
     // Réapprovisionner une boisson existante (entrée de stock)
     function handleReappro(e) {
       e.preventDefault();
       const id = reapproItem.value;
-      if (!id) { showToast('Choisissez une boisson', 1400); return; }
+      if (!id) { showToast('Choisissez un article', 1400); return; }
       const qty = casesToQty(reapproCases, reapproQty);
       if (qty < 1) { showToast('Indiquez des casiers ou des unités', 1600); return; }
       apiCall('POST', '/items/' + id + '/move/', { type: 'in', qty: qty, note: 'Réapprovisionnement' })
@@ -1359,7 +1438,7 @@
         .catch(fail);
     }
 
-    // Créer une nouvelle boisson (avec photo) — multipart
+    // Créer un nouvel article (avec photo) — multipart
     function handleNewDrink(e) {
       e.preventDefault();
       const name = newName.value.trim();
@@ -1368,14 +1447,16 @@
       if (qty < 1) qty = 1;
       let price = parseFloat((newPrice.value || '0').replace(',', '.'));
       if (isNaN(price) || price < 0) price = 0;
+      const category = (newCategory.value || '').trim();
+      const kind = selectedNewKind();
 
       const file = (newImage.files && newImage.files[0]) ? newImage.files[0] : null;
-      window.BarStock.upload('/items/', { name: name, quantity: qty, price: price }, file)
+      window.BarStock.upload('/items/', { name: name, quantity: qty, price: price, category: category, kind: kind }, file)
         .then(function (state) {
           applyState(state);
-          newName.value = ''; newPrice.value = ''; newImage.value = '';
+          newName.value = ''; newCategory.value = ''; newPrice.value = ''; newImage.value = '';
           newCases.value = '0'; newQty.value = '0'; updateAddHint();
-          showToast(name + ' créée');
+          showToast(name + ' créé');
           setAddTab('reappro');
         })
         .catch(fail);
@@ -1403,6 +1484,9 @@
     // Approvisionnement (onglets + formulaires)
     addTabs.querySelectorAll('.seg-tab').forEach(b => {
       b.addEventListener('click', function () { setAddTab(this.dataset.tab); });
+    });
+    if (newKind) newKind.querySelectorAll('.seg-tab').forEach(b => {
+      b.addEventListener('click', function () { setNewKind(this.dataset.kind); });
     });
     reapproForm.addEventListener('submit', handleReappro);
     newForm.addEventListener('submit', handleNewDrink);
@@ -1459,6 +1543,116 @@
     window.addEventListener('barstock:state', function (e) { if (e.detail) applyState(e.detail); });
 
     // ============================================================
+    // 18b. MODALES D'ADMINISTRATION (Réglages / Équipe / QR codes)
+    // ============================================================
+    const adminModals = { settings: $('settingsModal'), team: $('teamModal') };
+
+    function openAdminModal(name) {
+      const m = adminModals[name];
+      if (!m) return;
+      m.classList.add('show');
+      if (name === 'settings') loadSettings();
+      else if (name === 'team') loadTeam();
+    }
+    function closeAdminModal(name) { if (adminModals[name]) adminModals[name].classList.remove('show'); }
+
+    // Requête JSON directe (hors couche file d'attente — actions gérant en ligne)
+    function jsonFetch(method, url, payload) {
+      const opts = { method: method, headers: {} };
+      if (payload !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(payload); }
+      return fetch(url, opts).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          if (!r.ok) throw new Error(data.error || ('Erreur (' + r.status + ')'));
+          return data;
+        });
+      });
+    }
+
+    // ---- Réglages ----
+    function loadSettings() {
+      jsonFetch('GET', '/api/settings/').then(function (d) {
+        $('settingsName').value = d.name || '';
+        const wrap = $('settingsTypes');
+        wrap.innerHTML = (d.types || []).map(function (t) {
+          const checked = t[0] === d.type ? ' checked' : '';
+          return '<label class="type-opt"><input type="radio" name="settingsType" value="' + t[0] + '"' + checked + '><span>' + escapeHtml(t[1]) + '</span></label>';
+        }).join('');
+      }).catch(fail);
+    }
+    $('settingsSave').addEventListener('click', function () {
+      const name = $('settingsName').value.trim();
+      if (!name) { showToast('Entrez un nom', 1400); return; }
+      const checked = document.querySelector('input[name="settingsType"]:checked');
+      jsonFetch('POST', '/api/settings/', { name: name, type: checked ? checked.value : 'bar' })
+        .then(function () { showToast('Réglages enregistrés ✓'); setTimeout(function () { location.reload(); }, 500); })
+        .catch(fail);
+    });
+
+    // ---- Équipe ----
+    function renderTeam(serveurs) {
+      const list = $('teamList');
+      if (!serveurs || !serveurs.length) { list.innerHTML = '<div class="team-empty">Aucun serveur. Ajoutez-en un ci-dessus.</div>'; return; }
+      list.innerHTML = serveurs.map(function (s) {
+        return '<div class="team-row"><span class="team-who">' + ico('clipboard') + ' ' + escapeHtml(s.username) + '</span>'
+          + '<button class="btn btn-ghost team-del" data-id="' + s.id + '">' + ico('trash') + ' Supprimer</button></div>';
+      }).join('');
+      list.querySelectorAll('.team-del').forEach(function (b) {
+        b.addEventListener('click', function () {
+          if (!confirm('Supprimer ce serveur ?')) return;
+          jsonFetch('DELETE', '/api/team/' + this.getAttribute('data-id') + '/').then(function (d) { renderTeam(d.serveurs); showToast('Serveur supprimé'); }).catch(fail);
+        });
+      });
+    }
+    function loadTeam() { jsonFetch('GET', '/api/team/').then(function (d) { renderTeam(d.serveurs); }).catch(fail); }
+    $('teamAddForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const u = $('teamUser').value.trim(), p = $('teamPass').value;
+      if (!u || !p) { showToast('Identifiant et mot de passe requis', 1600); return; }
+      jsonFetch('POST', '/api/team/', { username: u, password: p }).then(function (d) {
+        $('teamUser').value = ''; $('teamPass').value = '';
+        renderTeam(d.serveurs); showToast('Serveur ajouté ✓');
+      }).catch(fail);
+    });
+
+    // ---- QR codes ----
+    function loadQr(n) {
+      const grid = $('qrGrid');
+      grid.innerHTML = '<div class="qr-loading">Génération…</div>';
+      jsonFetch('GET', '/api/qrcodes/?n=' + encodeURIComponent(n || 12)).then(function (d) {
+        $('qrN').value = d.n;
+        grid.innerHTML = (d.tables || []).map(function (t) {
+          return '<div class="qr-card"><div class="qr-table">Table ' + t.n + '</div>'
+            + '<img src="' + t.qr + '" alt="QR Table ' + t.n + '">'
+            + '<div class="qr-cta">Scannez pour commander</div></div>';
+        }).join('');
+      }).catch(function (e) { grid.innerHTML = '<div class="qr-loading">Erreur : ' + escapeHtml(e.message) + '</div>'; });
+    }
+    $('qrForm').addEventListener('submit', function (e) { e.preventDefault(); loadQr($('qrN').value); });
+    $('qrPrint').addEventListener('click', function () {
+      document.body.classList.add('printing-qr');
+      window.print();
+    });
+    window.addEventListener('afterprint', function () { document.body.classList.remove('printing-qr'); });
+
+    // Ouverture / fermeture
+    document.querySelectorAll('button[data-modal]').forEach(function (b) {
+      b.addEventListener('click', function () { openAdminModal(this.getAttribute('data-modal')); });
+    });
+    document.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { closeAdminModal(this.getAttribute('data-close')); });
+    });
+    Object.keys(adminModals).forEach(function (name) {
+      const m = adminModals[name];
+      if (m) m.addEventListener('click', function (e) { if (e.target === m) closeAdminModal(name); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      Object.keys(adminModals).forEach(function (name) {
+        if (adminModals[name] && adminModals[name].classList.contains('show')) closeAdminModal(name);
+      });
+    });
+
+    // ============================================================
     // 19. INIT
     // ============================================================
     function init() {
@@ -1469,9 +1663,9 @@
 
     try {
       init();
-      console.log('%c[BarStock] Application initialisée ✓', 'color:#38a169;font-weight:700');
+      console.log('%c[BUUB] Application initialisée ✓', 'color:#38a169;font-weight:700');
     } catch (err) {
-      console.error('[BarStock] Échec init :', err);
+      console.error('[BUUB] Échec init :', err);
       throw err; // remonte au logger global pour affichage à l\'écran
     }
 

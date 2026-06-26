@@ -1,0 +1,95 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{{ bar.name }} — Commander</title>
+  <link rel="stylesheet" href="{% static 'menu.css' %}?v={{ asset_v }}">
+  <meta name="theme-color" content="#f6efe2">
+</head>
+<body class="menu-body">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M5 2v20"/><path d="M21 15V2a5 5 0 0 0-3 4.5V12c0 1.7 1.3 3 3 3Z"/><path d="M19 15v7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+</defs></svg>
+
+<header class="m-top">
+  <div class="m-brand">
+    <span class="m-logo"><img src="{% static 'icons/buub.jpeg' %}" alt="buub"></span>
+    <span class="m-brand-txt">
+      <span class="m-bar-name">{{ bar.name }}</span>
+      <span class="m-brand-sub">Installez-vous, on s'occupe du reste</span>
+    </span>
+  </div>
+  {% if table %}<span class="m-table" id="mTable"><svg class="ico"><use href="#i-pin"/></svg> Table {{ table }}</span>{% endif %}
+</header>
+
+<div class="m-search">
+  <svg class="ico m-search-ico"><use href="#i-search"/></svg>
+  <input type="text" id="searchInput" placeholder="Un petit creux ? Une soif ?" autocomplete="off">
+  <button class="m-search-clear" id="searchClear" type="button" aria-label="Effacer" hidden><svg class="ico"><use href="#i-x"/></svg></button>
+</div>
+
+<!-- Onglets Boissons / Nourriture (affichés seulement si les deux existent) -->
+<nav class="m-tabs" id="kindTabs" hidden>
+  <button class="m-tab active" data-kind="all" type="button">Tout</button>
+  <button class="m-tab" data-kind="drink" type="button"><svg class="ico"><use href="#i-martini"/></svg> Boissons</button>
+  <button class="m-tab" data-kind="food" type="button"><svg class="ico"><use href="#i-utensils"/></svg> Nourriture</button>
+</nav>
+
+<main class="m-grid" id="grid"><div class="m-loading">Chargement du menu…</div></main>
+
+<!-- Barre panier flottante -->
+<button class="m-cartbar" id="cartBar" hidden>
+  <span class="m-cartbar-left"><svg class="ico"><use href="#i-cart"/></svg> <b id="cartCount">0</b> article(s)</span>
+  <span class="m-cartbar-right">Voir le panier · <b id="cartBarTotal">0 XAF</b></span>
+</button>
+
+<!-- Feuille panier -->
+<div class="m-sheet" id="sheet" hidden>
+  <div class="m-sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="m-sheet-card">
+    <div class="m-grab"></div>
+    <div class="m-sheet-head">
+      <b>Votre commande{% if table %} · Table {{ table }}{% endif %}</b>
+      <button class="m-sheet-close" id="sheetClose" aria-label="Fermer"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="m-sheet-lines" id="sheetLines"></div>
+    <div class="m-sheet-total"><span>Total</span><b id="sheetTotal">0 XAF</b></div>
+    <button class="m-send" id="sendBtn"><svg class="ico"><use href="#i-check"/></svg> Envoyer la commande</button>
+    <p class="m-note">Un serveur valide votre commande au comptoir.</p>
+  </div>
+</div>
+
+<!-- Écran de confirmation -->
+<div class="m-done" id="doneScreen" hidden>
+  <div class="m-done-card">
+    <div class="m-stamp" id="doneStamp">Commande reçue</div>
+    <span class="m-done-ico"><svg class="ico"><use href="#i-check"/></svg></span>
+    <h1>Commande transmise&nbsp;!</h1>
+    <p id="doneMsg">Un serveur arrive pour la confirmer. Merci&nbsp;!</p>
+    <button class="m-again" id="againBtn">Commander à nouveau</button>
+  </div>
+</div>
+
+<div id="toast" class="m-toast"></div>
+
+<script>
+  window.MENU = {
+    token: "{{ token }}",
+    table: "{{ table|escapejs }}",
+    stateUrl: "{% url 'public_menu' token %}state/",
+    orderUrl: "{% url 'public_menu' token %}order/"
+  };
+</script>
+<script src="{% static 'menu.js' %}?v={{ asset_v }}"></script>
+</body>
+</html>

@@ -4,8 +4,10 @@
   var API = "/api";
   var items = [];
   var orders = [];
+  var pending = [];   // commandes clients (QR) en attente de validation
   var cart = []; // {itemId, name, price, qty}
   var searchTerm = "";
+  var lastPendingCount = 0;
 
   function $(id) { return document.getElementById(id); }
   function ico(id) { return '<svg class="ico"><use href="#i-' + id + '"/></svg>'; }
@@ -27,6 +29,10 @@
   var orderLabel = $('orderLabel');
   var toast = $('toast');
   var toastMsg = $('toastMsg');
+  var pendingSection = $('pendingSection');
+  var pendingList = $('pendingList');
+  var pendingCountEl = $('pendingCount');
+  var navPendingBadge = $('navPendingBadge');
 
   var toastTimer = null;
   function showToast(msg, dur) {
@@ -44,9 +50,11 @@
   function applyState(state) {
     items = state.items || [];
     orders = state.orders || [];
+    pending = state.pending || [];
     renderGrid();
     renderCart();
     renderOrders();
+    renderPending();
   }
 
   function loadState() {
@@ -59,26 +67,56 @@
     return 0;
   }
 
+  // Catégories : ordre de groupage fourni par le serveur
+  var CATS = Array.isArray(window.BS_CATS) ? window.BS_CATS : [];
+  function catOrderIndex(cat) {
+    for (var i = 0; i < CATS.length; i++) { if (CATS[i].toLowerCase() === cat.toLowerCase()) return i; }
+    return CATS.length + 1;
+  }
+  function groupByCategory(list) {
+    var groups = {};
+    list.forEach(function (it) {
+      var c = (it.category || '').trim() || 'Divers';
+      (groups[c] = groups[c] || []).push(it);
+    });
+    return Object.keys(groups).sort(function (a, b) {
+      if (a === 'Divers') return 1; if (b === 'Divers') return -1;
+      var ia = catOrderIndex(a), ib = catOrderIndex(b);
+      return ia !== ib ? ia - ib : a.localeCompare(b, 'fr');
+    }).map(function (c) { return { cat: c, items: groups[c] }; });
+  }
+
+  function cardHtml(it) {
+    var out = (it.quantity || 0) <= 0;
+    var inCart = cartQty(it.id);
+    var photo = it.image
+      ? '<span class="g-card-img" style="background-image:url(\'' + encodeURI(it.image) + '\')"></span>'
+      : '<span class="g-card-img g-card-img-ph">' + esc((it.name || '?').charAt(0).toUpperCase()) + '</span>';
+    return '<button class="g-card' + (out ? ' out' : '') + (inCart ? ' active' : '') + '" data-id="' + it.id + '"' + (out ? ' disabled' : '') + '>'
+      + (inCart ? '<span class="g-badge">' + inCart + '</span>' : '')
+      + photo
+      + '<span class="g-card-name">' + esc(it.name) + '</span>'
+      + '<span class="g-card-price">' + fmt(it.price) + '</span>'
+      + '<span class="g-card-stock">' + (out ? 'rupture' : 'stock ' + it.quantity) + '</span>'
+      + '</button>';
+  }
+
   function renderGrid() {
     if (!items.length) { posGrid.innerHTML = '<div class="g-empty">Aucun article</div>'; return; }
     var q = searchTerm.trim().toLowerCase();
     var list = q ? items.filter(function (it) { return (it.name || '').toLowerCase().indexOf(q) !== -1; }) : items;
     if (!list.length) { posGrid.innerHTML = '<div class="g-empty">Aucun article pour « ' + esc(searchTerm) + ' »</div>'; return; }
     var html = '';
-    list.forEach(function (it) {
-      var out = (it.quantity || 0) <= 0;
-      var inCart = cartQty(it.id);
-      var photo = it.image
-        ? '<span class="g-card-img" style="background-image:url(\'' + encodeURI(it.image) + '\')"></span>'
-        : '<span class="g-card-img g-card-img-ph">' + esc((it.name || '?').charAt(0).toUpperCase()) + '</span>';
-      html += '<button class="g-card' + (out ? ' out' : '') + (inCart ? ' active' : '') + '" data-id="' + it.id + '"' + (out ? ' disabled' : '') + '>'
-        + (inCart ? '<span class="g-badge">' + inCart + '</span>' : '')
-        + photo
-        + '<span class="g-card-name">' + esc(it.name) + '</span>'
-        + '<span class="g-card-price">' + fmt(it.price) + '</span>'
-        + '<span class="g-card-stock">' + (out ? 'rupture' : 'stock ' + it.quantity) + '</span>'
-        + '</button>';
-    });
+    if (q) {
+      // Recherche : liste plate
+      list.forEach(function (it) { html += cardHtml(it); });
+    } else {
+      // Sinon : groupé par catégorie (en-têtes en pleine largeur)
+      groupByCategory(list).forEach(function (group) {
+        html += '<div class="g-cat-head">' + esc(group.cat) + ' <b>' + group.items.length + '</b></div>';
+        group.items.forEach(function (it) { html += cardHtml(it); });
+      });
+    }
     posGrid.innerHTML = html;
     posGrid.querySelectorAll('.g-card').forEach(function (b) {
       b.addEventListener('click', function () { addToCart(this.getAttribute('data-id')); });
@@ -188,6 +226,72 @@
     ordersList.innerHTML = html;
   }
 
+  // ---- Commandes clients (QR) ----
+  function beep() {
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      var ctx = new Ctx();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = 880;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      o.start(); o.stop(ctx.currentTime + 0.36);
+      o.onended = function () { try { ctx.close(); } catch (e) {} };
+    } catch (e) {}
+  }
+
+  var pendingInitialized = false;
+  function renderPending() {
+    var n = pending.length;
+    // Alerte si de nouvelles commandes sont arrivées (pas au tout premier chargement)
+    if (pendingInitialized && n > lastPendingCount) { beep(); showToast('🔔 Nouvelle commande client', 2600); }
+    lastPendingCount = n;
+    pendingInitialized = true;
+
+    if (navPendingBadge) {
+      if (n > 0) { navPendingBadge.textContent = n > 99 ? '99+' : n; navPendingBadge.removeAttribute('hidden'); }
+      else { navPendingBadge.setAttribute('hidden', ''); }
+    }
+
+    if (!n) { pendingSection.setAttribute('hidden', ''); pendingList.innerHTML = ''; return; }
+    pendingSection.removeAttribute('hidden');
+    pendingCountEl.textContent = n;
+
+    var html = '';
+    pending.forEach(function (p) {
+      var table = p.table ? esc(p.table) : 'Client';
+      var lines = p.lines.map(function (l) { return l.qty + '× ' + esc(l.name); }).join(', ');
+      html += '<div class="g-pcard">'
+        + '<div class="g-pcard-top"><b>' + table + '</b><span>' + fmt(p.total) + '</span></div>'
+        + '<div class="g-pcard-lines">' + lines + '</div>'
+        + '<div class="g-pcard-btns">'
+        + '<button class="g-preject" data-id="' + p.id + '">' + ico('x') + ' Refuser</button>'
+        + '<button class="g-paccept" data-id="' + p.id + '">' + ico('check') + ' Valider</button>'
+        + '</div></div>';
+    });
+    pendingList.innerHTML = html;
+    pendingList.querySelectorAll('.g-paccept').forEach(function (b) { b.addEventListener('click', function () { acceptPending(this.getAttribute('data-id')); }); });
+    pendingList.querySelectorAll('.g-preject').forEach(function (b) { b.addEventListener('click', function () { rejectPending(this.getAttribute('data-id')); }); });
+  }
+
+  function acceptPending(id) {
+    api('POST', '/pending/' + id + '/accept/').then(function (state) {
+      applyState(state);
+      showToast('Commande validée ✓');
+    }).catch(function (e) { showToast(e.message, 2800); });
+  }
+
+  function rejectPending(id) {
+    if (!window.confirm('Refuser cette commande client ?')) return;
+    api('POST', '/pending/' + id + '/reject/').then(function (state) {
+      applyState(state);
+      showToast('Commande refusée');
+    }).catch(function (e) { showToast(e.message, 2800); });
+  }
+
   // ---- Horloge ----
   function tick() {
     var d = new Date();
@@ -256,6 +360,8 @@
   document.addEventListener('visibilitychange', function () { if (!document.hidden) loadState().catch(function () {}); });
   // Resynchronisation en arrière-plan : la couche hors ligne pousse le nouvel état.
   window.addEventListener('barstock:state', function (e) { if (e.detail) applyState(e.detail); });
+  // Sondage régulier pour récupérer les nouvelles commandes clients (QR).
+  setInterval(function () { if (!document.hidden) loadState().catch(function () {}); }, 12000);
 
   tick();
   setInterval(tick, 30000);

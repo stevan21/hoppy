@@ -1,0 +1,64 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réglages — {{ bar.name }}</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions"><span style="color:var(--muted)">{{ bar.name }}</span></div>
+</nav>
+
+<div class="team-shell">
+  <a class="back-link" href="{% url 'dashboard' %}"><svg class="ico"><use href="#i-arrow-left"/></svg> Retour au tableau de bord</a>
+  <h1>Réglages</h1>
+  <p class="sub">Nom et type de votre établissement. Le type adapte le vocabulaire et les catégories suggérées.</p>
+
+  {% if saved %}
+    <div class="errors" style="background:rgba(47,133,90,.16);border-color:rgba(47,133,90,.4);color:#9be8bd">
+      <svg class="ico" style="width:16px;height:16px;vertical-align:-2px"><use href="#i-check"/></svg> Réglages enregistrés.
+    </div>
+  {% endif %}
+
+  <div class="panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label for="id_name">Nom de l'établissement</label>
+        <input type="text" name="name" id="id_name" value="{{ form.name.value|default:'' }}" required>
+        {% for e in form.name.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label>Type d'établissement</label>
+        <div class="type-grid">
+          {% for val, lbl in form.fields.type.choices %}
+            <label class="type-opt">
+              <input type="radio" name="type" value="{{ val }}"{% if form.type.value == val %} checked{% endif %}>
+              <span>{{ lbl }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button class="btn btn-gold btn-block" type="submit">Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

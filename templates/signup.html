@@ -1,0 +1,87 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Créer mon compte — BUUB</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions">
+    <a class="btn btn-ghost btn-sm" href="{% url 'login' %}">Connexion</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="ac-head">
+      <h1>Créer mon bar</h1>
+      <p>Votre espace privé, prêt en quelques secondes.</p>
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label for="id_bar_name">Nom de l'établissement</label>
+        <input type="text" name="bar_name" id="id_bar_name" value="{{ form.bar_name.value|default:'' }}" required autofocus>
+        {% for e in form.bar_name.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label>Type d'établissement</label>
+        <div class="type-grid">
+          {% for val, lbl in form.fields.type.choices %}
+            <label class="type-opt">
+              <input type="radio" name="type" value="{{ val }}"{% if form.type.value == val or not form.type.value and val == 'bar' %} checked{% endif %}>
+              <span>{{ lbl }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="id_email">Email (servira d'identifiant)</label>
+        <input type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}" required autocapitalize="none">
+        {% for e in form.email.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label for="id_password1">Mot de passe</label>
+        <input type="password" name="password1" id="id_password1" required>
+        <div class="help">6 caractères minimum.</div>
+        {% for e in form.password1.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label for="id_password2">Confirmer le mot de passe</label>
+        <input type="password" name="password2" id="id_password2" required>
+        {% for e in form.password2.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+
+      <button class="btn btn-gold btn-block" type="submit">Créer mon compte</button>
+    </form>
+
+    <div class="ac-foot">
+      Déjà un compte ? <a href="{% url 'login' %}">Se connecter</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

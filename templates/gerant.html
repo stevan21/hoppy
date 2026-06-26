@@ -3,18 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>BarStock — Prise de commande</title>
+  <title>BUUB — Caisse</title>
   <link rel="stylesheet" href="{% static 'gerant.css' %}">
   <!-- PWA -->
   <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
-  <meta name="theme-color" content="#1a2e3f">
+  <meta name="theme-color" content="#161616">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="BarStock">
-  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+  <meta name="apple-mobile-web-app-title" content="BUUB">
+  <link rel="apple-touch-icon" href="{% static 'icons/buub.jpeg' %}">
+  <link rel="icon" href="{% static 'icons/buub.jpeg' %}">
 </head>
 <body class="gerant-body">
+<script>if (new URLSearchParams(location.search).get('embed')) document.body.classList.add('embed');</script>
 
 <!-- Sprite icônes -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -30,8 +32,18 @@
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></symbol>
     <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></symbol>
     <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"></path><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"></path><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></symbol>
   </defs>
 </svg>
+
+<header class="g-topbar">
+  <span class="g-brand"><img class="g-brand-logo" src="{% static 'icons/buub.jpeg' %}" alt="BUUB"> {{ bar.name }}</span>
+  <div class="g-acct">
+    <span class="g-user">{{ request.user.username }}</span>
+    {% if role == 'gerant' %}<a class="g-acct-btn" href="{% url 'dashboard' %}"><svg class="ico"><use href="#i-grid"></use></svg><span>Tableau de bord</span></a>{% endif %}
+    <form method="post" action="{% url 'logout' %}" class="g-logout">{% csrf_token %}{% if role == 'serveur' %}<input type="hidden" name="next" value="{% url 'serveur_login' %}">{% endif %}<button type="submit"><svg class="ico"><use href="#i-x"></use></svg><span>Quitter</span></button></form>
+  </div>
+</header>
 
 <div class="g-main" id="gMain" data-view="articles">
   <!-- Grille d'articles -->
@@ -48,6 +60,15 @@
 
   <!-- Panier / commande en cours -->
   <aside class="g-cart">
+    <!-- Commandes clients (envoyées par QR code, à valider) -->
+    <section class="g-pending" id="pendingSection" hidden>
+      <div class="g-pending-head">
+        <span><svg class="ico"><use href="#i-bell"></use></svg> Commandes clients</span>
+        <span class="g-pending-count" id="pendingCount">0</span>
+      </div>
+      <div class="g-pending-list" id="pendingList"></div>
+    </section>
+
     <div class="g-cart-head">
       <svg class="ico"><use href="#i-cart"></use></svg> Commande en cours
     </div>
@@ -75,6 +96,7 @@
   <button class="g-nav-btn" data-view="order" type="button">
     <svg class="ico"><use href="#i-cart"></use></svg><span>Commande</span>
     <span class="g-nav-badge" id="navCartBadge" hidden>0</span>
+    <span class="g-nav-badge g-nav-badge-alert" id="navPendingBadge" hidden>0</span>
   </button>
   <button class="g-nav-btn" data-view="history" type="button">
     <svg class="ico"><use href="#i-history"></use></svg><span>Historique</span>
@@ -92,6 +114,10 @@
 <!-- Toast -->
 <div id="toast" class="toast"><svg class="ico"><use href="#i-check"></use></svg><span id="toastMsg">OK</span></div>
 
+<script>
+  window.BS_CACHE_KEY = "{{ bar.id }}";
+  window.BS_CATS = [{% for c in categories %}"{{ c|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+</script>
 <script src="{% static 'offline.js' %}"></script>
 <script src="{% static 'gerant.js' %}"></script>
 </body>

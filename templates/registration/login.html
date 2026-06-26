@@ -1,0 +1,58 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — BUUB</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions">
+    <a class="btn btn-gold btn-sm" href="{% url 'signup' %}">Créer un compte</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="ac-head">
+      <h1>Connexion</h1>
+      <p>Accédez à l'espace de votre bar.</p>
+    </div>
+
+    {% if form.errors %}
+      <div class="errors">Identifiant ou mot de passe incorrect.</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="id_username">Email ou identifiant</label>
+        <input type="text" name="username" id="id_username" autofocus required autocapitalize="none">
+      </div>
+      <div class="field">
+        <label for="id_password">Mot de passe</label>
+        <input type="password" name="password" id="id_password" required>
+      </div>
+      <button class="btn btn-gold btn-block" type="submit">Se connecter</button>
+    </form>
+
+    <div class="ac-foot">
+      Pas encore de compte ? <a href="{% url 'signup' %}">Créer mon bar</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Équipe — {{ bar.name }}</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions">
+    <span style="color:var(--muted)">{{ bar.name }}</span>
+  </div>
+</nav>
+
+<div class="team-shell">
+  <a class="back-link" href="{% url 'dashboard' %}"><svg class="ico"><use href="#i-arrow-left"/></svg> Retour au tableau de bord</a>
+  <h1>Équipe</h1>
+  <p class="sub">Créez un compte pour chaque serveur. Ils accèdent uniquement à la caisse.</p>
+
+  <div class="panel">
+    <h2>Ajouter un serveur</h2>
+    {% if form.non_field_errors %}<div class="errors">{{ form.non_field_errors }}</div>{% endif %}
+    <form method="post" class="team-form" novalidate>
+      {% csrf_token %}
+      <div class="field" style="margin:0">
+        <label for="id_username">Identifiant</label>
+        <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}" required autocapitalize="none">
+        {% for e in form.username.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="field" style="margin:0">
+        <label for="id_password">Mot de passe</label>
+        <input type="password" name="password" id="id_password" required>
+        {% for e in form.password.errors %}<div class="help" style="color:#ffb4b4">{{ e }}</div>{% endfor %}
+      </div>
+      <button class="btn btn-gold" type="submit"><svg class="ico"><use href="#i-plus"/></svg> Créer</button>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Serveurs ({{ serveurs|length }})</h2>
+    <ul class="team-list">
+      {% for p in serveurs %}
+        <li>
+          <span class="who">
+            <span class="av">{{ p.user.username|first|upper }}</span>
+            <span><b>{{ p.user.username }}</b></span>
+          </span>
+          <form method="post" action="{% url 'team_delete' p.id %}" onsubmit="return confirm('Supprimer le serveur « {{ p.user.username|escapejs }} » ?');">
+            {% csrf_token %}
+            <button class="btn btn-danger btn-sm" type="submit"><svg class="ico"><use href="#i-trash"/></svg> Supprimer</button>
+          </form>
+        </li>
+      {% empty %}
+        <li class="empty">Aucun serveur pour l'instant. Ajoutez-en un ci-dessus.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

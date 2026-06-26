@@ -1,0 +1,158 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUUB — La gestion d'établissement, simple et sans effort</title>
+  <meta name="description" content="BUUB : gérez le stock, la caisse et les ventes de votre bar, cave ou restaurant. Chaque établissement son espace, ses serveurs, ses archives.">
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M12 20h.01"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><line x1="2" x2="22" y1="2" y2="22"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+</defs></svg>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions">
+    {% if user.is_authenticated %}
+      <a class="btn btn-gold btn-sm" href="{% url 'dashboard' %}">Mon espace <svg class="ico"><use href="#i-arrow"/></svg></a>
+    {% else %}
+      <a class="btn btn-ghost btn-sm" href="{% url 'serveur_login' %}">Espace serveur</a>
+      <a class="btn btn-ghost btn-sm" href="{% url 'login' %}">Connexion</a>
+      <a class="btn btn-gold btn-sm" href="{% url 'signup' %}">Créer un compte</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div>
+    <h1>Gérez votre bar <span class="accent">sans effort</span>, du stock à la caisse.</h1>
+    <p class="lead">Suivez vos boissons, prenez les commandes, surveillez les ventes et archivez chaque journée. Chaque établissement a son espace privé — vous, vos serveurs, vos chiffres.</p>
+    <div class="hero-cta">
+      <a class="btn btn-gold" href="{% url 'signup' %}">Créer mon bar gratuitement <svg class="ico"><use href="#i-arrow"/></svg></a>
+      <a class="btn btn-ghost" href="{% url 'login' %}">J'ai déjà un compte</a>
+    </div>
+    <div class="hero-meta">
+      <div class="stat"><b>100%</b><span>Données isolées par bar</span></div>
+      <div class="stat"><b>Hors&nbsp;ligne</b><span>La caisse marche sans réseau</span></div>
+      <div class="stat"><b>XAF</b><span>Pensé pour la zone FCFA</span></div>
+    </div>
+  </div>
+
+  <!-- logo animé -->
+  <div class="hero-logo" aria-hidden="true">
+    <span class="hero-logo-glow"></span>
+    <span class="hero-logo-badge">
+      <svg class="lg-svg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BUUB">
+        <defs>
+          <linearGradient id="lgBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#323232"/><stop offset="1" stop-color="#131313"/>
+          </linearGradient>
+          <linearGradient id="lgYel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe85f"/><stop offset="0.5" stop-color="#ffce17"/><stop offset="1" stop-color="#f0a700"/>
+          </linearGradient>
+          <linearGradient id="lgStroke" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff0a0"/><stop offset="1" stop-color="#df9f00"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="240" height="240" fill="url(#lgBg)"/>
+        <!-- éclaboussure -->
+        <path class="lg-blob" d="M120 66 C145 64 158 78 178 80 C198 82 210 96 205 113 C201 127 214 138 207 152 C200 166 181 167 171 177 C160 188 143 183 128 186 C112 189 96 185 84 180 C69 174 53 176 45 162 C38 150 45 139 39 127 C33 114 36 99 50 92 C63 85 73 73 92 69 C104 66 110 67 120 66 Z"
+              fill="#1b1b1b" stroke="url(#lgStroke)" stroke-width="5" stroke-linejoin="round"/>
+        <!-- gouttes -->
+        <g stroke="#df9f00" stroke-width="1.4" fill="url(#lgYel)">
+          <g transform="translate(120 58) scale(1.25)"><path class="lg-drop d1" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+          <g transform="translate(152 70) scale(0.6)"><path class="lg-drop d2" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+          <g transform="translate(54 112) scale(0.75)"><path class="lg-drop d3" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+          <g transform="translate(198 118) scale(0.65)"><path class="lg-drop d4" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+          <g transform="translate(116 198) rotate(180) scale(1.05)"><path class="lg-drop d5" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+          <g transform="translate(150 192) rotate(180) scale(0.6)"><path class="lg-drop d2" d="M0,-9 C2.6,-4.5 5,-2 5,2.2 A5 5 0 1 1 -5,2.2 C-5,-2 -2.6,-4.5 0,-9 Z"/></g>
+        </g>
+        <!-- texte BUUB -->
+        <g class="lg-text" font-family="'Arial Black','Segoe UI',Impact,sans-serif" font-weight="900" font-size="58" text-anchor="middle" letter-spacing="-1">
+          <text x="121" y="152" fill="#6e4d00" stroke="#6e4d00" stroke-width="2" paint-order="stroke">BUUB</text>
+          <text x="120" y="149" fill="url(#lgYel)" stroke="#bd8a00" stroke-width="1.4" paint-order="stroke">BUUB</text>
+        </g>
+      </svg>
+      <span class="hero-logo-shine"></span>
+    </span>
+  </div>
+</header>
+
+<!-- ===== FONCTIONNALITÉS ===== -->
+<section class="section">
+  <div class="section-head">
+    <span class="eyebrow">Tout-en-un</span>
+    <h2>Ce qu'il vous faut pour faire tourner le bar</h2>
+    <p>Un outil unique, du comptoir à la compta de fin de journée.</p>
+  </div>
+  <div class="features">
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-box"/></svg></div><h3>Gestion du stock</h3><p>Entrées, sorties, réapprovisionnement par casier, alertes de rupture et valeur du stock en temps réel.</p></div>
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-cart"/></svg></div><h3>Caisse rapide</h3><p>Prise de commande en quelques tapes. Le stock se décrémente automatiquement à chaque vente.</p></div>
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-trending"/></svg></div><h3>Ventes & statistiques</h3><p>Chiffre du jour, articles les plus vendus, historique complet des mouvements. Tout est clair.</p></div>
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-archive"/></svg></div><h3>Archives quotidiennes</h3><p>Chaque journée est archivée automatiquement, exportable en PDF ou CSV pour votre comptabilité.</p></div>
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-users"/></svg></div><h3>Comptes serveurs</h3><p>Créez un compte pour chaque serveur. Ils accèdent à la caisse, vous gardez la main sur le reste.</p></div>
+    <div class="feature"><div class="fico"><svg class="ico"><use href="#i-wifi-off"/></svg></div><h3>Marche hors ligne</h3><p>Coupure de réseau ? La caisse continue. Les commandes se synchronisent dès le retour de la connexion.</p></div>
+  </div>
+</section>
+
+<!-- ===== ÉTAPES ===== -->
+<section class="section">
+  <div class="section-head">
+    <span class="eyebrow">Démarrage en 2 minutes</span>
+    <h2>Comment ça marche</h2>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><h3>Créez votre compte</h3><p>Renseignez le nom de votre bar et votre email. Votre espace privé est prêt aussitôt.</p></div>
+    <div class="step"><div class="num">2</div><h3>Ajoutez vos boissons</h3><p>Saisissez votre stock et vos prix. Invitez vos serveurs en quelques clics.</p></div>
+    <div class="step"><div class="num">3</div><h3>Vendez et suivez</h3><p>Encaissez à la caisse, suivez les ventes et archivez chaque journée. C'est tout.</p></div>
+  </div>
+</section>
+
+<!-- ===== TÉMOIGNAGES ===== -->
+<section class="section">
+  <div class="section-head">
+    <span class="eyebrow">Ils gèrent leur établissement avec BUUB</span>
+    <h2>Des gérants conquis</h2>
+  </div>
+  <div class="quotes">
+    <div class="quote"><div class="stars">★★★★★</div><p>« Fini le cahier. Je sais exactement ce qui se vend et ce qu'il me reste, même quand je ne suis pas au bar. »</p><div class="who"><span class="av">A</span><div><b>Aline N.</b><span>Le Phénix, Douala</span></div></div></div>
+    <div class="quote"><div class="stars">★★★★★</div><p>« Mes serveurs prennent les commandes directement, le stock se met à jour tout seul. Un gain de temps énorme. »</p><div class="who"><span class="av">B</span><div><b>Bertrand K.</b><span>Le Baobab, Yaoundé</span></div></div></div>
+    <div class="quote"><div class="stars">★★★★★</div><p>« L'archive PDF de fin de journée, c'est ce qui m'a convaincu. Ma compta n'a jamais été aussi simple. »</p><div class="who"><span class="av">S</span><div><b>Sandrine M.</b><span>O'Comptoir, Bafoussam</span></div></div></div>
+  </div>
+</section>
+
+<!-- ===== CTA FINAL ===== -->
+<div class="cta-band">
+  <div class="cta-inner">
+    <h2>Prêt à reprendre le contrôle de votre bar ?</h2>
+    <p>Créez votre espace gratuitement. Aucune carte bancaire requise.</p>
+    <a class="btn btn-gold" href="{% url 'signup' %}">Créer mon compte gérant <svg class="ico"><use href="#i-arrow"/></svg></a>
+  </div>
+</div>
+
+<footer class="public-foot">
+  <div class="inner">
+    <span class="brand" style="font-size:1rem"><span class="logo" style="width:30px;height:30px"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span> <span class="brand-name">BUUB</span></span>
+    <span>© {% now "Y" %} BUUB — Gestion d'établissement</span>
+  </div>
+</footer>
+
+</body>
+</html>

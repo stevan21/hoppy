@@ -23,9 +23,13 @@
   "use strict";
 
   var API = "/api";
-  var K_STATE = "barstock_state_v1";   // dernier état complet connu
-  var K_QUEUE = "barstock_queue_v1";   // écritures en attente de synchro
-  var K_IDMAP = "barstock_idmap_v1";   // id temporaires -> id réels (après synchro)
+  // Cloisonnement par bar (tenant) : chaque bar a son propre cache local, pour
+  // qu'aucune donnée ne fuite entre deux comptes utilisant le même navigateur.
+  var TENANT = (typeof window.BS_CACHE_KEY !== "undefined" && window.BS_CACHE_KEY) ? String(window.BS_CACHE_KEY) : "anon";
+  var SUFFIX = "_b" + TENANT;
+  var K_STATE = "barstock_state_v1" + SUFFIX;   // dernier état complet connu
+  var K_QUEUE = "barstock_queue_v1" + SUFFIX;   // écritures en attente de synchro
+  var K_IDMAP = "barstock_idmap_v1" + SUFFIX;   // id temporaires -> id réels (après synchro)
 
   // ---- Persistance (localStorage) -----------------------------------------
   function readJSON(k, d) { try { var s = localStorage.getItem(k); return s ? JSON.parse(s) : d; } catch (e) { return d; } }
@@ -104,18 +108,20 @@
       if (!name) return { error: "Nom requis" };
       var qty = toInt(payload.quantity, 1); if (qty < 1) qty = 1;
       var price = toPrice(payload.price);
+      var category = (payload.category || "").trim();
       var existing = findItemByName(s, name);
       if (existing) {
         var before = existing.quantity || 0;
         existing.quantity = before + qty;
         if (price > 0) existing.price = price;
+        if (category) existing.category = category;
         if (payload.image) existing.image = payload.image;
         pushMove(s, { itemId: existing.id, itemName: existing.name, type: "in", qty: qty,
           before: before, after: existing.quantity, note: "Réapprovisionnement", value: qty * existing.price });
         return { meta: {} };
       }
       var nid = uid();
-      var it = { id: nid, name: name, quantity: qty, price: price, image: payload.image || "" };
+      var it = { id: nid, name: name, quantity: qty, price: price, category: category, image: payload.image || "" };
       s.items.push(it); sortItems(s);
       pushMove(s, { itemId: nid, itemName: name, type: "create", qty: qty,
         before: 0, after: qty, note: "Création article", value: qty * price });
@@ -421,7 +427,7 @@
   function upload(path, fields, file) {
     function doOffline() {
       function withImage(dataUrl) {
-        var payload = { name: fields.name, quantity: fields.quantity, price: fields.price };
+        var payload = { name: fields.name, quantity: fields.quantity, price: fields.price, category: fields.category };
         if (dataUrl) payload.image = dataUrl;
         var s = getState();
         if (!s) return Promise.reject(new Error("Hors ligne : données indisponibles."));
@@ -430,7 +436,7 @@
         if (r.error) return Promise.reject(new Error(r.error));
         setState(ns);
         enqueue({ id: uid(), multipart: true, path: path, method: "POST",
-          fields: { name: fields.name, quantity: fields.quantity, price: fields.price },
+          fields: { name: fields.name, quantity: fields.quantity, price: fields.price, category: fields.category || "" },
           imageDataUrl: dataUrl || "", label: labelFor("POST", path), meta: r.meta || {} });
         setOnline(false); scheduleFlush();
         return Promise.resolve(ns);

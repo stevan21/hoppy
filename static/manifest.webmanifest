@@ -1,15 +1,15 @@
 {
-  "name": "BarStock — Caisse",
-  "short_name": "BarStock",
-  "description": "Prise de commande et gestion de stock pour bar",
-  "start_url": "/gerant/",
+  "name": "BUUB — Caisse",
+  "short_name": "BUUB",
+  "description": "Prise de commande et gestion de stock pour bar, cave et restaurant",
+  "start_url": "/caisse/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f2f5f9",
-  "theme_color": "#1a2e3f",
+  "background_color": "#0e0e0e",
+  "theme_color": "#161616",
   "icons": [
-    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "/static/icons/buub.jpeg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "/static/icons/buub.jpeg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
   ]
 }

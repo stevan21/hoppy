@@ -1,0 +1,87 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR codes des tables — {{ bar.name }}</title>
+  <link rel="stylesheet" href="{% static 'home.css' %}">
+  <style>
+    .qr-shell { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .qr-controls {
+      display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+      background: rgba(255,255,255,.05); border: 1px solid var(--line);
+      border-radius: 16px; padding: 18px 20px; margin-bottom: 24px;
+    }
+    .qr-controls .field { margin: 0; }
+    .qr-controls input { width: 120px; }
+    .qr-controls .grow { flex: 1; }
+    .qr-hint { color: var(--muted); font-size: .9rem; }
+    .qr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .qr-card {
+      background: #fff; color: #16202b; border-radius: 16px; padding: 16px 14px 18px;
+      text-align: center; border: 1px solid #e3e8ef;
+    }
+    .qr-card .qr-table { font-weight: 800; font-size: 1.15rem; color: #16202b; }
+    .qr-card .qr-bar { color: #5a6b7e; font-size: .82rem; margin-bottom: 10px; font-weight: 600; }
+    .qr-card img { width: 100%; max-width: 190px; height: auto; image-rendering: pixelated; }
+    .qr-card .qr-cta { margin-top: 8px; font-weight: 700; font-size: .9rem; color: #b8920a; }
+    .qr-card .qr-sub { color: #7a8a9e; font-size: .74rem; }
+    @media (max-width: 700px) { .qr-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media print {
+      body.public { background: #fff !important; color: #000; }
+      .nav, .qr-controls, .back-link, .qr-print-title { display: none !important; }
+      .qr-shell { max-width: none; padding: 0; }
+      .qr-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .qr-card { break-inside: avoid; border: 1px dashed #bbb; }
+    }
+  </style>
+  <meta name="theme-color" content="#161616">
+</head>
+<body class="public">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></symbol>
+</defs></svg>
+
+<nav class="nav">
+  <a class="brand" href="{% url 'home' %}">
+    <span class="logo"><img src="{% static 'icons/buub.jpeg' %}" alt="BUUB"></span>
+    <span class="brand-name">BUUB</span>
+  </a>
+  <div class="nav-actions"><span style="color:var(--muted)">{{ bar.name }}</span></div>
+</nav>
+
+<div class="qr-shell">
+  <a class="back-link" href="{% url 'dashboard' %}"><svg class="ico"><use href="#i-arrow-left"/></svg> Retour au tableau de bord</a>
+  <h1 class="qr-print-title">QR codes des tables</h1>
+  <p class="sub qr-print-title" style="color:var(--muted);margin-bottom:18px">
+    Imprimez cette page, découpez et collez un QR par table. Le client scanne et commande directement.
+  </p>
+
+  <form class="qr-controls" method="get" action="{% url 'qrcodes' %}">
+    <div class="field">
+      <label for="n">Nombre de tables</label>
+      <input type="number" id="n" name="n" min="1" max="60" value="{{ n }}">
+    </div>
+    <button class="btn btn-ghost" type="submit">Générer</button>
+    <span class="grow"></span>
+    <button class="btn btn-gold" type="button" onclick="window.print()"><svg class="ico"><use href="#i-print"/></svg> Imprimer</button>
+  </form>
+
+  <div class="qr-grid">
+    {% for t in tables %}
+      <div class="qr-card">
+        <div class="qr-bar">{{ bar.name }}</div>
+        <div class="qr-table">Table {{ t.n }}</div>
+        <img src="{{ t.qr }}" alt="QR Table {{ t.n }}">
+        <div class="qr-cta">Scannez pour commander</div>
+        <div class="qr-sub">Pointez l'appareil photo vers le code</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+</body>
+</html>
